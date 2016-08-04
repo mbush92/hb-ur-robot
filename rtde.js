@@ -79,7 +79,7 @@ var RTDE = function () {
     }
   }, {
     key: 'get_controller_version',
-    value: function get_controller_version() {
+    value: function get_controller_version(callback) {
       var cmd = command.RTDE_GET_URCONTROL_VERSION;
       this._sendAndReceive(cmd, '', function (version) {
         if (version) {
@@ -88,9 +88,9 @@ var RTDE = function () {
             console.log("Please upgrade your controller to minimally version 3.2.19171");
             //process.exit()
           }
-          return [version.major, version.minor, version.bugfix, version.build];
+          return callback([version.major, version.minor, version.bugfix, version.build]);
         }
-        return [null, null, null];
+        return callback([null, null, null]);
       });
     }
   }, {
@@ -101,8 +101,8 @@ var RTDE = function () {
       console.log('protocol is:', protocol);
       var payload = _bufferpack2.default.pack('>H', protocol);
       console.log('payload:', payload);
-      this._sendAndReceive(cmd, payload, function (data) {
-        return callback(data.success);
+      this._sendAndReceive(cmd, payload, function (status) {
+        return callback(status.success);
       });
     }
   }, {
@@ -130,11 +130,12 @@ var RTDE = function () {
 
       console.log('payload:', payload);
       var fmt = '>HB';
-      var size = _bufferpack2.default.calcLength(fmt);
-      console.log("size", size);
-      console.log("cmd", [size, cmd]);
-      var buf = _bufferpack2.default.pack(fmt, [size, cmd]) + payload;
-      //let buf = new Buffer(cmd,'utf-8')
+      var size = _bufferpack2.default.calcLength(fmt) + payload.length;
+      console.log("header", [size, cmd]);
+      var header = [size, cmd];
+      var buf = _bufferpack2.default.pack(fmt, header) + payload;
+      console.log('buf length:', buf.length);
+      var totalLength = buf.length + payload.length;
       console.log("Buffer sent:" + buf);
       this.sock.write(buf, function (err) {
         if (err) return callback(false);
@@ -174,7 +175,7 @@ var RTDE = function () {
       _store.Message.unpack(payload, function (msg) {
         console.log('msg level:', _store.Message.messages[msg.level]);
         console.log(msg);
-        return callback('something needs to go here');
+        return callback(msg);
       });
 
       // msg = serialize.Message.unpack(payload)
@@ -207,7 +208,11 @@ var RTDE = function () {
     key: '_unpack_protocol_version_package',
     value: function _unpack_protocol_version_package(payload, callback) {
       console.log('getting protocol version');
-      console.log(payload.length);
+      if (payload.length != 1) return callback('[ERROR] RTDE_REQUEST_PROTOCOL_VERSION: Wrong payload size');
+      _store.ReturnValue.unpack(payload, function (status) {
+        console.log(status);
+        return callback(status);
+      });
     }
   }, {
     key: '_swapJsonKeyValues',

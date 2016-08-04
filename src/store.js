@@ -54,9 +54,9 @@ export const ReturnValue = {
     let rmd = {
       success:null
     }
-    rmd.success = bool(struc.unpack('>B', buf))
+    rmd.success = Boolean(struct.unpack('>B', buf))
     return callback(rmd)
-  }
+  },
 }
 
 // module.exports = {ControlHeader, Message}

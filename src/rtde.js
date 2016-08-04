@@ -48,7 +48,7 @@ class RTDE {
       return callback (true)
     })
   }
-  get_controller_version(){
+  get_controller_version(callback){
     let cmd = command.RTDE_GET_URCONTROL_VERSION
     this._sendAndReceive(cmd,'' ,(version)=>{
       if (version) {
@@ -57,9 +57,9 @@ class RTDE {
           console.log("Please upgrade your controller to minimally version 3.2.19171")
           //process.exit()
         }
-        return [version.major, version.minor, version.bugfix, version.build]
+        return callback([version.major, version.minor, version.bugfix, version.build])
       }
-      return [null, null, null]
+      return callback([null, null, null])
     })
   }
 
@@ -69,8 +69,8 @@ class RTDE {
     console.log('protocol is:', protocol)
     let payload = struct.pack('>H', protocol)
     console.log('payload:', payload)
-    this._sendAndReceive(cmd, payload, (data)=>{
-      return callback(data.success)
+    this._sendAndReceive(cmd, payload, (status)=>{
+      return callback(status.success)
     })
 
   }
@@ -89,11 +89,12 @@ class RTDE {
   _sendall(cmd, payload='', callback){
     console.log('payload:', payload)
     let fmt = '>HB'
-    let size = struct.calcLength(fmt)
-    console.log("size",size)
-    console.log("cmd", [size, cmd])
-    let buf = struct.pack(fmt, [size, cmd]) + payload
-    //let buf = new Buffer(cmd,'utf-8')
+    let size = struct.calcLength(fmt) + payload.length
+    console.log("header", [size, cmd])
+    let header = [size, cmd]
+    let buf = struct.pack(fmt, header) + payload
+    console.log('buf length:', buf.length)
+    let totalLength = buf.length + payload.length
     console.log("Buffer sent:" +  buf)
     this.sock.write(buf, (err)=>{
       if (err) return callback(false)
@@ -131,7 +132,7 @@ class RTDE {
     Message.unpack(payload, (msg)=>{
       console.log('msg level:',Message.messages[msg.level])
       console.log(msg)
-      return callback ('something needs to go here')
+      return callback (msg)
     })
 
     // msg = serialize.Message.unpack(payload)
@@ -163,7 +164,11 @@ class RTDE {
 
   _unpack_protocol_version_package(payload, callback){
     console.log('getting protocol version')
-    console.log(payload.length)
+    if(payload.length!=1) return callback('[ERROR] RTDE_REQUEST_PROTOCOL_VERSION: Wrong payload size')
+    ReturnValue.unpack(payload, (status)=>{
+      console.log(status)
+      return callback(status)
+    })
   }
 
   _swapJsonKeyValues(input) {

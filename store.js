@@ -68,7 +68,7 @@ var ReturnValue = exports.ReturnValue = {
     var rmd = {
       success: null
     };
-    rmd.success = bool(struc.unpack('>B', buf));
+    rmd.success = Boolean(_bufferpack2.default.unpack('>B', buf));
     return callback(rmd);
   }
 };
