@@ -1,0 +1,26 @@
+{
+  "name": "urrobotnode",
+  "version": "1.0.1-0",
+  "description": "Node.js library for interacting with a UR Robot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Matthew Bush",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-cli": "^6.11.4"
+  },
+  "dependencies": {
+    "bufferpack": "0.0.6",
+    "lodash": "^4.14.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mbush92/hb-ur-robot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mbush92/hb-ur-robot/issues"
+  },
+  "homepage": "https://github.com/mbush92/hb-ur-robot#readme"
+}
